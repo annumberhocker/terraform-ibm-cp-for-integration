@@ -1,5 +1,5 @@
 #####################################################
-# Module_Name_Here
+# <Module name here>
 # Copyright 2020 IBM
 #####################################################
 
@@ -15,7 +15,6 @@ terraform {
   }
 }
 If we dont configure the version parameter, it fetches the latest provider version.
-****************************************************/
 
 terraform {
   required_version = ">=0.13"
@@ -25,3 +24,6 @@ terraform {
     }
   }
 }
+
+****************************************************/
+
