@@ -12,3 +12,5 @@ output "cp4i_pass" {
   description = "Password for your Cloud Pak for Integration deployment."
   value = module.cp4i.cp4i_password
 }
+
+

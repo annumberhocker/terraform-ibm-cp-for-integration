@@ -1,14 +1,50 @@
-Use this README.md file to capture a table with trivial use cases such as deleting an already provisioned resource or changing the service plan of a provisioned resource.
+# Example to provision CP4I Terraform Module
 
-Following link can be used as a reference
+## Run using IBM Cloud Schematics
 
-https://github.com/terraform-ibm-modules/terraform-ibm-observability/blob/main/examples/README.md
+For instructions to run these examples using IBM Schematics, refer [here](https://cloud.ibm.com/docs/schematics?topic=schematics-get-started-terraform).
 
+## Run using local Terraform Client
 
-|   Service         |         How To                     |        Action                           |     Document             |
-|-------------------|------------------------------------|-----------------------------------------|--------------------------|
-| monitoring-sysdig | Remove an instance                 |  Run `terraform detsroy` command        | https://urlzs.com/BF4TE  |
-| monitoring-sysdig | Change service plan                |  configure `plan` parameter accordingly | https://urlzs.com/bBdNW  |
+For instructions to run using the local Terraform Client on your machine go [here](https://ibm.github.io/cloud-enterprise-examples/iac/setup-environment/).
 
+## Set the desired values for the variables in a `terraform.tfvars` file.  These values are :
 
-For more information refer https://github.com/terraform-ibm-modules/getting-started
+```hcl
+  cluster_id            = "******************"
+  storageclass          = "ibmc-file-gold-gid"
+  resource_group_name   = "Default"
+  entitled_registry_key = "******************"
+  entitled_registry_user_email = "john.doe@email.com"
+```
+
+These parameters are:
+
+- `cluster_id`: ID of the cluster to install cloud pak on
+- `region`: The region that the cluster is provisioned in
+- `resource_group_name`: Resource group that the cluster is provisioned in
+- `entitled_registry_key`: Get the entitlement key from https://myibm.ibm.com/products-services/containerlibrary and assign it to this variable
+- `entitled_registry_user_email`: IBM Container Registry (ICR) username which is the email address of the owner of the Entitled Registry Key
+
+### Execute the example
+
+Execute the following Terraform commands:
+
+```bash
+terraform init
+terraform plan
+terraform apply -auto-approve
+```
+
+### Verify
+
+To verify installation on the Kubernetes cluster, go to the Openshift console and go to the `Installed Operators` tab. Choose your `namespace` and click on `IBM Cloud Pak for Integration Platform Navigator
+4.2.0 provided by IBM` and finally click on the `Platform Navigator` tab. Finally check the status of the cp4i-navigator
+
+### Cleanup
+
+Go into the console and delete the platform navigator from the verify section. Delete all installed operators and lastly delete the project.
+
+Finally, execute: `terraform destroy`.
+
+There are some directories and files you may want to manually delete, these are: `rm -rf terraform.tfstate* .terraform .kube`

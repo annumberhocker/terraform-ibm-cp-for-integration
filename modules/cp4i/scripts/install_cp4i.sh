@@ -1,18 +1,5 @@
 #!/bin/sh
 
-# Required input parameters
-# - KUBECONFIG : Not used directly but required by oc
-# - STORAGE_CLASS_NAME
-# - DOCKER_REGISTRY_PASS
-# - DOCKER_USER_EMAIL
-# - STORAGE_CLASS_CONTENT
-# - INSTALLER_SENSITIVE_DATA
-# - INSTALLER_JOB_CONTENT
-# - SCC_ZENUID_CONTENT
-
-# Software requirements:
-# - kubectl
-
 # Optional input parameters with default values:
 NAMESPACE=${NAMESPACE:-cp4i}
 DEBUG=${DEBUG:-false}
@@ -27,12 +14,14 @@ while [[ -z $(kubectl get route -n openshift-ingress router-default -o jsonpath=
   sleep $WAITING_TIME
 done
 
-echo "Deploying Catalog Option ${IBM_OPERATOR_CATALOG}"
-echo "${IBM_OPERATOR_CATALOG}" | oc apply -f -
-
 # echo "Creating namespace ${NAMESPACE}"
 echo "creating namespace ${NAMESPACE}"
-kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
+kubectl create namespace ${NAMESPACE}
+
+echo "Deploying Catalog Option ${CATALOG_CONTENT}"
+kubectl apply -f -<<EOF
+${CATALOG_CONTENT}
+EOF
 
 create_secret() {
   secret_name=$1
@@ -54,27 +43,25 @@ create_secret ibm-entitlement-key $NAMESPACE
 
 sleep 40
 
-echo "Deploying Subscription ${SUBSCRIPTION}"
-echo "${SUBSCRIPTION}" | oc apply -f -
+echo "Deploying Subscription ${SUBSCRIPTION_CONTENT}"
+kubectl apply -f -<<EOF
+${SUBSCRIPTION_CONTENT}
+EOF
 
-echo "Waiting 17minutes for operators to install..."
-sleep 1020
+echo "Waiting 10 minutes for operators to install..."
+sleep 600
 
-if ${ON_VPC}; then
-  storage_class="portworx-rwx-gp3-sc"
-else
-  storage_class="ibmc-file-gold-gid"
-fi
-PLATFORM_NAVIGATOR=`sed -e "s/STORAGECLASS/${storage_class}/g" ../templates/navigator.yaml`
-echo "Deploying Platform Navigator ${PLATFORM_NAVIGATOR}"
-sed -e "s/STORAGECLASS/${storage_class}/g" ../templates/navigator.yaml | oc -n ${NAMESPACE} apply -f -
+echo "Deploying Platform Navigator ${NAVIGATOR_CONTENT}"
+kubectl apply -n ${NAMESPACE} -f -<<EOF
+${NAVIGATOR_CONTENT}
+EOF
 
 SLEEP_TIME="60"
 RUN_LIMIT=200
 i=0
 
 while true; do
-  if ! STATUS_LONG=$(oc -n ${NAMESPACE} get platformnavigator cp4i-navigator --output=json | jq -c -r '.status'); then
+  if ! STATUS_LONG=$(kubectl -n ${NAMESPACE} get platformnavigator cp4i-navigator --output=json | jq -c -r '.status'); then
     echo 'Error getting status'
     exit 1
   fi

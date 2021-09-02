@@ -1,13 +1,6 @@
-# IBM Cloud <module_name> - Terraform Module
+# IBM Cloud Pak for Integration - Terraform Module
 
-Mention the purpose of writing these modules.
-
-E.g:
-
-This is a collection of modules that make it easier to provision and configure Observability services like logging, monitor and activity tracker on IBM Cloud Platform:
-* [logging-logdna](modules/logging-logdna)
-* [monitoring-sysdig](modules/monitoring-sysdig)
-* [activity-tracker-logdna](modules/activity-tracker-logdna)
+This is a module and example to make it easier to provision Cloud Pak for Integration on an IBM Cloud Platform OpenShift Cluster:
 
 ## Compatibility
 
@@ -15,7 +8,7 @@ This module is meant for use with Terraform 0.13 (and higher).
 
 ## Usage
 
-Full examples are in the [examples](./examples/) folder, demonstarte how to use a module through a template:
+A full example is in the [examples](./examples/) folder.
 
 e.g:
 
@@ -23,24 +16,40 @@ e.g:
 provider "ibm" {
 }
 
-data "ibm_resource_group" "logdna" {
-  name = var.resource_group
+data "ibm_resource_group" "group" {
+  name = var.resource_group_name
 }
 
-module "logdna_instance" {
-  source  = "terraform-ibm-modules/observability/ibm//modules/logging-logdna"
+// Make directory to store cluster config
+resource "null_resource" "mkdir_kubeconfig_dir" {
+  triggers = { always_run = timestamp() }
+  provisioner "local-exec" {
+    command = "mkdir -p ${local.kube_config_path}"
+  }
+}
 
+// Pull down the cluster configuration
+data "ibm_container_cluster_config" "cluster_config" {
+  depends_on = [null_resource.mkdir_kubeconfig_dir]
+  cluster_name_id   = var.cluster_id
+  resource_group_id = data.ibm_resource_group.group.id
+  config_dir        = local.kube_config_path
+}
 
-  bind_resource_key   = var.bind_resource_key
-  service_name        = var.service_name
-  resource_group_id   = data.ibm_resource_group.logdna.id
-  plan                = var.plan
-  region              = var.region
-  service_endpoints   = var.service_endpoints
-  tags                = var.tags
-  resource_key_name   = var.resource_key_name
-  role                = var.role
-  resource_key_tags   = var.resource_key_tags
+// Cloud Pak for Integration module
+module "cp4i" {
+  source = "../../modules/cp4i"
+  enable = true
+
+  // ROKS cluster parameters:
+  cluster_config_path = data.ibm_container_cluster_config.cluster_config.config_file_path
+  storageclass        = "ibmc-file-gold-gid"
+
+  // Entitled Registry parameters:
+  entitled_registry_key        = "<entitlement_key>"
+  entitled_registry_user_email = "<entitlement_email>"
+
+  namespace           = "cp4i"
 }
 
 ```
@@ -91,12 +100,10 @@ To execute and start building the configuration defined in the plan (provisions 
 terraform apply -var-file=./input.tfvars
 ```
 
-To destroy the VPC and all related resources
+To destroy all related resources
 ```
 terraform destroy -var-file=./input.tfvars
 ```
 
 ## Note
-
-All optional parameters, by default, will be set to `null` in respective example's variable.tf file. You can also override these optional parameters.
 

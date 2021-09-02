@@ -25,8 +25,8 @@ results() {
 # control_plane_log=$(kubectl logs -n cpd-meta-ops $POD | sed 's/[[:cntrl:]]\[[0-9;]*m//g' | tail -20)
 # address=$(echo $control_plane_log | sed -n 's#.*\(https*://[^"]*\).*#\1#p')
 
-route=$(kubectl get route -n ${NAMESPACE} cp4i-navigator-pn -o json | jq -r .spec.host)
-pass=$(kubectl get secret -n ibm-common-services platform-auth-idp-credentials -o json | jq -r '.data.admin_password' | base64 -d)
-user=$(kubectl get secret -n ibm-common-services platform-auth-idp-credentials -o json | jq -r '.data.admin_username' | base64 -d)
+route=$(oc get route -n ${NAMESPACE} cp4i-navigator-pn -o json | jq -r .spec.host)
+pass=$(oc get secret -n ibm-common-services platform-auth-idp-credentials -o json | jq -r '.data.admin_password' | base64 -d)
+user=$(oc get secret -n ibm-common-services platform-auth-idp-credentials -o json | jq -r '.data.admin_username' | base64 -d)
 
 results "${route}" "${pass}" "${user}"
