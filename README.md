@@ -1,6 +1,6 @@
 # IBM Cloud Pak for Integration - Terraform Module
 
-This is a module and example to make it easier to provision Cloud Pak for Integration on an IBM Cloud Platform OpenShift Cluster:
+This is a module and example to make it easier to provision Cloud Pak for Integration on an IBM Cloud Platform OpenShift Cluster provisioned on either Classic of VPC infrastructure.  The cluster is required to contain at least 4 nodes of size 16x64. If VPC is used, Portworx is required to provide necessary storage classes.
 
 ## Compatibility
 

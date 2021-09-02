@@ -1,46 +1,37 @@
-# Test CP4I Module
+# Example to provision CP4I Terraform Module
 
-## 1. Set up access to IBM Cloud
+## Run using IBM Cloud Schematics
 
-If running this module from your local terminal, you need to set the credentials to access IBM Cloud.
+For instructions to run these examples using IBM Schematics go [here]([../Using_Schematics.md](https://cloud.ibm.com/docs/schematics?topic=schematics-get-started-terraform))
 
-You can define the IBM Cloud credentials in the IBM provider block but it is recommended to pass them in as environment variables.
+For more information on IBM Schematics, refer [here](https://cloud.ibm.com/docs/schematics?topic=schematics-get-started-terraform).
 
-Go [here](../../CREDENTIALS.md) for details.
+## Run using local Terraform Client
 
-**NOTE**: These credentials are not required if running this Terraform code within an **IBM Cloud Schematics** workspace. They are automatically set from your account.
+For instructions to run using the local Terraform Client on your local machine go [here]([../Using_Terraform.md](https://ibm.github.io/cloud-enterprise-examples/iac/setup-environment/)). 
 
-## 2. Test
 
-### Using Terraform client
+### Inputs
 
-Follow these instructions to test the Terraform Module manually
+| Name                               | Description  | Default                     | Required |
+| ---------------------------------- | ----- | --------------------------- | -------- |
+| `cluster_id`                       | ID of the cluster to install cloud pak on. Cluster needs to be at least 4 nodes of size 16x64.|                             | Yes       |
+| `resource_group`                   | Resource Group in your account to host the cluster. List all available resource groups with: `ibmcloud resource groups`     | `cloud-pak-sandbox`         | Yes       |
+| `storageclass`                   | Storage class to be used: Defaulted to `ibmc-file-gold-gid` for Classic Infrastructure. If using a VPC cluster, set to `portworx-rwx-gp3-sc` and make sure Portworx is set up on cluster  | `ibmc-file-gold-gid`         | Yes       |
+| `entitled_registry_key`            | Get the entitlement key from https://myibm.ibm.com/products-services/containerlibrary.   |                             | Yes      |
+| `entitled_registry_user_email`     | Email address of the user owner of the Entitled Registry Key   |                             | Yes      |
 
-Create the file `test.auto.tfvars` with the following input variables, these values are fake examples:
+If running locally, set the desired values for these variables in the `terraform.tfvars` file.  Here are some examples:
 
 ```hcl
-source          = "./.."
-  enable          = var.enable
-
-  // ROKS cluster parameters:
-  openshift_version   = var.openshift_version
-  cluster_config_path = data.ibm_container_cluster_config.cluster_config.config_file_path
- 
-  // Entitled Registry parameters:
-  entitled_registry_key        = var.entitled_registry_key
-  entitled_registry_user_email = var.entitled_registry_user_email
-
-  namespace = var.namespace
+  cluster_id            = "******************"
+  storageclass          = "ibmc-file-gold-gid"
+  resource_group_name   = "Default"
+  entitled_registry_key = "******************"
+  entitled_registry_user_email = "john.doe@email.com"
 ```
 
-These parameters are:
-
-- `enable`: If set to `false` does not install the cloud pak on the given cluster. By default it's enabled
-- `openshift_version`: Openshift version installed in the cluster
-- `cluster_config_path`: Kube config directory path
-- `entitled_registry_key`: Get the entitlement key from https://myibm.ibm.com/products-services/containerlibrary and assign it to this variable. Optionally you can store the key in a file and use the `file()` function to get the file content/key
-- `entitled_registry_user_email`: IBM Container Registry (ICR) username which is the email address of the owner of the Entitled Registry Key
-                              
+### Execute the example
 
 Execute the following Terraform commands:
 
@@ -50,17 +41,15 @@ terraform plan
 terraform apply -auto-approve
 ```
 
-One of the Test Scenarios is to verify the YAML files rendered to install IAF, these files are generated in the directory `rendered_files`. Go to this directory to validate that they are generated correctly.
+### Verify
 
-## 3. Verify
+To verify installation on the cluster, on the Openshift console go to the `Installed Operators` tab. Choose your `namespace` and click on `IBM Cloud Pak for Integration Platform Navigator
+4.2.0 provided by IBM`. Click on the `Platform Navigator` tab. Check the status of the cp4i-navigator
 
-To verify installation on the Kubernetes cluster, go to the Openshift console and go to the `Installed Operators` tab. Choose your `namespace` and click on `IBM Cloud Pak for Integration Platform Navigator
-4.2.0 provided by IBM` and finally click on the `Platform Navigator` tab. Finally check the status of the cp4i-navigator
-
-## 4. Cleanup
+### Cleanup
 
 Go into the console and delete the platform navigator from the verify section. Delete all installed operators and lastly delete the project.
 
 Finally, execute: `terraform destroy`.
 
-There are some directories and files you may want to manually delete, these are: `rm -rf test.auto.tfvars terraform.tfstate* .terraform .kube rendered_files`
+If running locally, There are some directories and files you may want to manually delete, these are: `rm -rf terraform.tfstate* .terraform .kube`
