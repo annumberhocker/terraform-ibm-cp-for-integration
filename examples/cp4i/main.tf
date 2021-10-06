@@ -31,6 +31,4 @@ module "cp4i" {
   // Entitled Registry parameters:
   entitled_registry_key        = var.entitled_registry_key
   entitled_registry_user_email = var.entitled_registry_user_email
-
-  namespace           = "cp4i"
 }
