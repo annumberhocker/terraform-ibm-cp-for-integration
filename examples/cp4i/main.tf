@@ -1,5 +1,4 @@
 provider "ibm" {
-  version          = "~> 1.12"
 }
 
 data "ibm_resource_group" "group" {
